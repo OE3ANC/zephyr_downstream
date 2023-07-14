@@ -41,4 +41,6 @@ source "drivers/video/Kconfig.ov7725"
 
 source "drivers/video/Kconfig.ov2640"
 
+osource "drivers/video/Kconfig.video_buffer_custom"
+
 endif # VIDEO
