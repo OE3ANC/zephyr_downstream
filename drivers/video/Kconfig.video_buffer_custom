@@ -1,0 +1,7 @@
+config VIDEO_CUSTOM_SECTION
+    bool "custom video mem pool section"
+    default n
+
+config VIDEO_CUSTOM_SECTION_NAME
+    string "custom video mem pool section name"
+    default ""
