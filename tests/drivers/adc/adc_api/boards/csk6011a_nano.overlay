@@ -1,0 +1,20 @@
+/ {
+	zephyr,user {
+		io-channels = <&adc0 0>;
+	};
+};
+
+&adc0 {
+	pinctrl-0 = <&pinctrl_adc0_ch0_default>; 
+	pinctrl-names = "default";
+	status = "okay";
+    #address-cells = <1>;
+	#size-cells = <0>;
+    channel@0 {
+		reg = <0>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <0>;
+		zephyr,resolution = <11>;
+	};
+};
