@@ -1,0 +1,7 @@
+
+&dma0 {
+	dma-channels = <6>;
+	status = "okay";
+};
+
+test_dma0: &dma0 { };
