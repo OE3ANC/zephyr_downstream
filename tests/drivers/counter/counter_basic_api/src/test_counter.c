@@ -28,6 +28,19 @@ struct counter_alarm_cfg alarm_cfg2;
 	DT_FOREACH_STATUS_OKAY(compat, DEVICE_DT_GET_AND_COMMA)
 
 static const struct device *const devices[] = {
+	#ifdef CONFIG_COUNTER_CSK6_DUAL
+	DEVICE_DT_GET(DT_NODELABEL(dual_timer)),
+#endif
+#ifdef CONFIG_COUNTER_CSK6_GPTCHANNEL
+	DEVICE_DT_GET(DT_NODELABEL(gptchannel0)),
+	DEVICE_DT_GET(DT_NODELABEL(gptchannel1)),
+	DEVICE_DT_GET(DT_NODELABEL(gptchannel2)),
+	DEVICE_DT_GET(DT_NODELABEL(gptchannel3)),
+	DEVICE_DT_GET(DT_NODELABEL(gptchannel4)),
+	DEVICE_DT_GET(DT_NODELABEL(gptchannel5)),
+	DEVICE_DT_GET(DT_NODELABEL(gptchannel6)),
+	DEVICE_DT_GET(DT_NODELABEL(gptchannel7)),
+#endif
 #ifdef CONFIG_COUNTER_NRF_TIMER
 	DEVS_FOR_DT_COMPAT(nordic_nrf_timer)
 #endif
