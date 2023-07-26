@@ -430,10 +430,16 @@ static int check_input_levels(void)
 	return TC_PASS;
 }
 
+#if defined(CONFIG_SOC_CSK6)
+/* CSK Chip must use a longer delay for the signal to settle
+ */
+#define PULL_DELAY_US 200U
+#else
 /* Delay after pull input config to allow signal to settle.  The value
  * selected is conservative (higher than may be necessary).
  */
 #define PULL_DELAY_US 100U
+#endif
 
 /* Verify that pull-up and pull-down work for a disconnected input. */
 static int check_pulls(void)
@@ -463,7 +469,10 @@ static int check_pulls(void)
 	zassert_equal(raw_in(), true,
 		      "physical pull-up does not read high");
 
+	/* Get system tick */
+	uint32_t tick = k_cycle_get_32();
 	rc = gpio_pin_configure(dev, PIN_IN, GPIO_INPUT | GPIO_PULL_DOWN);
+	TC_PRINT("configure to input pull down passed tick: %d \n", (k_cycle_get_32() - tick));
 	k_busy_wait(PULL_DELAY_US);
 	if (rc == -ENOTSUP) {
 		TC_PRINT("pull-down not supported\n");
