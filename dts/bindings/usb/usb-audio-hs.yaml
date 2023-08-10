@@ -36,21 +36,19 @@ properties:
   mic-polling-interval:
     type: int
     default: 1
+# microphone channel configuration options
+  mic-device-type:
+    type: int
+    required: false
+    description: mic device type.
   hp-resolution:
     type: int
     default: 16
     enum:
-      - 8
-      - 16
-      - 24
-      - 32
-  hp-sample-rate-hz:
-    type: int
-    default: 48000
-  hp-polling-interval:
-    type: int
-    default: 1
-  # microphone channel configuration options
+     - 8
+     - 16
+     - 24
+     - 32
   mic-channel-l:
     type: boolean
     description: Enable (l) channel.
@@ -131,6 +129,16 @@ properties:
       Enable Loudness feature.
       Currently not supported.
 # headphones channel configuration options
+  hp-sample-rate-hz:
+    type: int
+    default: 48000
+  hp-polling-interval:
+    type: int
+    default: 1
+  hp-device-type:
+    type: int
+    required: false
+    description: headphone device type.
   hp-channel-l:
     type: boolean
     description: Enable (l) channel.
