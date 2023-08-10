@@ -26,6 +26,7 @@
 / {
 	aliases {
 		analogkey = &keysense;
+		kscan0=&keysense;
 	};
 };
 
