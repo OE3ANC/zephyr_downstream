@@ -3,7 +3,7 @@
 # things used by twister or related in run time testing
 
 # used to flash & debug various boards
-pyocd>=0.35.0
+https://cdn.iflyos.cn/public/lisa-binary/pyocd/pyocd-0.34.2.dev20-py3-none-any.whl
 
 # used by twister for board/hardware map
 tabulate
