@@ -50,7 +50,11 @@ properties:
   hp-polling-interval:
     type: int
     default: 1
-  # microphone channel configuration options
+# microphone channel configuration options
+  mic-device-type:
+    type: int
+    required: false
+    description: mic device type.
   mic-channel-l:
     type: boolean
     description: Enable (l) channel.
@@ -131,6 +135,10 @@ properties:
       Enable Loudness feature.
       Currently not supported.
 # headphones channel configuration options
+  hp-device-type:
+    type: int
+    required: false
+    description: headphone device type.
   hp-channel-l:
     type: boolean
     description: Enable (l) channel.
