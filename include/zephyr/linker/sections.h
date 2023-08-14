@@ -41,6 +41,7 @@
 
 /* Architecture-specific sections */
 #if defined(CONFIG_ARM)
+#define __CSK_PSRAM_NET_SECTION_NAME  csk_psram_net_pool
 #define _KINETIS_FLASH_CONFIG_SECTION_NAME  kinetis_flash_config
 #define _TI_CCFG_SECTION_NAME	        .ti_ccfg
 
