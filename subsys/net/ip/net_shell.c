@@ -4342,8 +4342,7 @@ static enum net_verdict handle_ipv6_echo_reply(struct net_pkt *pkt,
 		ping_done(&ping_ctx);
 	}
 
-	net_pkt_unref(pkt);
-	return NET_OK;
+	return 0;
 }
 #else
 #define remove_ipv6_ping_handler()
@@ -4417,7 +4416,7 @@ static enum net_verdict handle_ipv4_echo_reply(struct net_pkt *pkt,
 	}
 
 	net_pkt_unref(pkt);
-	return NET_OK;
+	return 0;
 }
 
 #else

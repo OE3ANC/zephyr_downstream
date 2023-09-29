@@ -1393,7 +1393,6 @@ send_na:
 
 	if (!net_ipv6_send_na(net_pkt_iface(pkt), na_src,
 			      na_dst, tgt, flags)) {
-		net_pkt_unref(pkt);
 		return 0;
 	}
 
@@ -1831,8 +1830,6 @@ static int handle_na_input(struct net_icmp_ctx *ctx,
 	if (!handle_na_neighbor(pkt, na_hdr, tllao_offset)) {
 		goto drop;
 	}
-
-	net_pkt_unref(pkt);
 
 	return 0;
 
@@ -2619,8 +2616,6 @@ static int handle_ra_input(struct net_icmp_ctx *ctx,
 
 	/* Cancel the RS timer on iface */
 	net_if_stop_rs(net_pkt_iface(pkt));
-
-	net_pkt_unref(pkt);
 
 	return 0;
 
