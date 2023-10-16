@@ -1715,6 +1715,8 @@ in:
 
 	if (conn) {
 		verdict = tcp_in(conn, pkt);
+	} else {
+		net_tcp_reply_rst(pkt);
 	}
 
 	return verdict;
@@ -2412,7 +2414,10 @@ next_state:
 			 * priority.
 			 */
 			connection_ok = true;
+		} else if (pkt) {
+			net_tcp_reply_rst(pkt);
 		}
+
 		break;
 	case TCP_ESTABLISHED:
 		/* full-close */
