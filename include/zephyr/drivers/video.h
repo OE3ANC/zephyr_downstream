@@ -575,6 +575,8 @@ void video_buffer_release(struct video_buffer *buf);
 /* JPEG formats */
 #define VIDEO_PIX_FMT_JPEG   video_fourcc('J', 'P', 'E', 'G') /*  8  JPEG */
 
+#define VIDEO_PIX_FMT_GRAY   video_fourcc('G', 'R', 'A', 'Y') /*  8  GRAY */
+
 #ifdef __cplusplus
 }
 #endif
