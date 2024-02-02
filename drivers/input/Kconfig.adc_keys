@@ -4,7 +4,7 @@
 config INPUT_ADC_KEYS
 	bool "ADC attached resistor ladder buttons"
 	default y
-	depends on DT_HAS_ADC_KEYS_ENABLED
+	depends on DT_HAS_ZEPHYR_ADC_KEYS_ENABLED
 	depends on ADC
 	help
 	  Enable support for ADC attached resistor ladder buttons.
