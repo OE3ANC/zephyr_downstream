@@ -14,7 +14,7 @@ description: |
 
   / {
           buttons {
-                  compatible = "adc-keys";
+                  compatible = "zephyr,adc-keys";
                   io-channels = <&adc 2>;
                   keyup-threshold-mv = <0>;
 
@@ -32,7 +32,7 @@ description: |
           };
   };
 
-compatible: "adc-keys"
+compatible: "zephyr,adc-keys"
 
 include: base.yaml
 

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#define DT_DRV_COMPAT adc_keys
+#define DT_DRV_COMPAT zephyr_adc_keys
 
 #include <stdlib.h>
 
@@ -202,7 +202,7 @@ static int adc_keys_init(const struct device *dev)
 	}
 
 #define ADC_KEYS_CODE_CFG(node_id)                                                                 \
-	DT_FOREACH_PROP_ELEM_SEP(node_id, press_thresholds_mv, ADC_KEYS_CODE_CFG_CODE, (,))
+	DT_FOREACH_PROP_ELEM_SEP(node_id, press_thresholds_mv, ADC_KEYS_CODE_CFG_CODE, (, ))
 
 #define ADC_KEYS_KEY_DATA(node_id)                                                                 \
 	{                                                                                          \
@@ -211,7 +211,7 @@ static int adc_keys_init(const struct device *dev)
 
 #define ADC_KEYS_INST(n)                                                                           \
 	static struct adc_keys_key_data adc_keys_key_data_##n[] = {                                \
-		DT_INST_FOREACH_CHILD_SEP(n, ADC_KEYS_KEY_DATA, (,))};                             \
+		DT_INST_FOREACH_CHILD_SEP(n, ADC_KEYS_KEY_DATA, (, ))};                            \
                                                                                                    \
 	static struct adc_keys_data adc_keys_data_##n = {                                          \
 		.self = DEVICE_DT_INST_GET(n),                                                     \
@@ -219,7 +219,7 @@ static int adc_keys_init(const struct device *dev)
 	};                                                                                         \
                                                                                                    \
 	static const struct adc_keys_code_config adc_keys_code_cfg_##n[] = {                       \
-		DT_INST_FOREACH_CHILD_STATUS_OKAY_SEP(n, ADC_KEYS_CODE_CFG, (,))};                 \
+		DT_INST_FOREACH_CHILD_STATUS_OKAY_SEP(n, ADC_KEYS_CODE_CFG, (, ))};                \
                                                                                                    \
 	static const struct adc_keys_config adc_keys_cfg_##n = {                                   \
 		.channel = ADC_DT_SPEC_INST_GET(n),                                                \
