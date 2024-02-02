@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#define DT_DRV_COMPAT adc_keys
+#define DT_DRV_COMPAT zephyr_adc_keys
 
 #include <stdlib.h>
 #include <stdbool.h>
