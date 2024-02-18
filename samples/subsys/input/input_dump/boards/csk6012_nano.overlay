@@ -1,0 +1,18 @@
+/*
+ * Copyright (c) 2024 Anhui Listenai Co., Ltd.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <csk/csk6_pinctrl.dtsi>
+
+&pinctrl {
+	keysense_default: keysense_default {
+		pinctrls = <AON_KEY_GPIOB_05>;
+	};
+};
+
+&adc0 {
+	status = "okay";
+	pinctrl-0 = <&keysense_default>;
+	pinctrl-names = "default";
+};
