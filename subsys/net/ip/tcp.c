@@ -2501,7 +2501,7 @@ next_state:
 			tcp_out(conn, FIN | ACK);
 			next = TCP_LAST_ACK;
 			verdict = NET_OK;
-			keep_alive_timer_stop(conn);
+			// keep_alive_timer_stop(conn);
 			break;
 		} else if (th && FL(&fl, ==, FIN, th_seq(th) == conn->ack)) {
 			conn_ack(conn, + 1);
@@ -2524,7 +2524,7 @@ next_state:
 			conn_ack(conn, + len + 1);
 			tcp_out(conn, FIN | ACK);
 			next = TCP_LAST_ACK;
-			keep_alive_timer_stop(conn);
+			// keep_alive_timer_stop(conn);
 			tcp_setup_last_ack_timer(conn);
 			break;
 		}
