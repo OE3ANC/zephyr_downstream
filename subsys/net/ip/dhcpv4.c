@@ -772,40 +772,56 @@ static bool dhcpv4_parse_options(struct net_pkt *pkt,
 #if defined(CONFIG_DNS_RESOLVER)
 		case DHCPV4_OPTIONS_DNS_SERVER: {
 			struct dns_resolve_context *ctx;
-			struct sockaddr_in dns;
-			const struct sockaddr *dns_servers[] = {
-				(struct sockaddr *)&dns, NULL
-			};
-			int status;
+			struct sockaddr_in *dnss;
+			struct sockaddr **dns_servers;
+			int status, cnt, i;
 
-			/* DNS server option may present 1 or more
-			 * addresses. Each 4 bytes in length. DNS
-			 * servers should be listed in order
-			 * of preference.  Hence we choose the first
-			 * and skip the rest.
-			 */
 			if (length % 4 != 0U) {
 				NET_ERR("options_dns, bad length");
 				return false;
 			}
 
-			(void)memset(&dns, 0, sizeof(dns));
-
-			if (net_pkt_read(pkt, dns.sin_addr.s4_addr, 4) ||
-			    net_pkt_skip(pkt, length - 4U)) {
-				NET_ERR("options_dns, short packet");
+			cnt = length >> 2;
+			dnss = (struct sockaddr_in *)k_malloc(cnt * sizeof(struct sockaddr_in));
+			if(dnss == NULL){
+				NET_ERR("options_dns, dnss malloc faild");
 				return false;
 			}
 
+			dns_servers = (struct sockaddr **)k_malloc((cnt + 1) * sizeof(struct sockaddr *));
+			if(dns_servers == NULL){
+				NET_ERR("options_dns, dns_servers malloc faild");
+				k_free((void *)dnss);
+				return false;
+			}
+
+			for(i = 0; i < cnt; i++){
+				(void)memset(&dnss[i], 0, sizeof(struct sockaddr_in));
+				dnss[i].sin_family = AF_INET;
+				if (net_pkt_read(pkt, dnss[i].sin_addr.s4_addr, 4)) {
+					NET_ERR("options_dns, short packet");
+					k_free((void *)dnss);
+					k_free((void *)dns_servers);
+					return false;
+				}
+				NET_HEXDUMP_ERR(dnss[i].sin_addr.s4_addr, 4, "");
+				dns_servers[i] = (struct sockaddr *)&dnss[i];
+			}
+
+			dns_servers[i] = NULL;
+
 			ctx = dns_resolve_get_default();
-			dns.sin_family = AF_INET;
-			status = dns_resolve_reconfigure(ctx, NULL, dns_servers);
+			status = dns_resolve_reconfigure(ctx, NULL, (const struct sockaddr **)dns_servers);
 			if (status < 0) {
 				NET_DBG("options_dns, failed to set "
 					"resolve address: %d", status);
+					k_free((void *)dnss);
+					k_free((void *)dns_servers);
 				return false;
 			}
 
+			k_free((void *)dnss);
+			k_free((void *)dns_servers);
 			break;
 		}
 #endif
