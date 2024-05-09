@@ -1285,7 +1285,7 @@ try_resolve:
 		 * TODO: Change the i (query index) to do multiple concurrent
 		 *       to each server.
 		 */
-		break;
+		// break;
 	}
 
 	if (failure) {
