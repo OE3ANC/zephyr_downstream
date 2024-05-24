@@ -1477,6 +1477,10 @@ static int class_handler(struct usb_setup_packet *pSetup,
 		if (iface->class_handler &&
 		    if_descr->bInterfaceNumber == (pSetup->wIndex & 0xFF)) {
 			return iface->class_handler(pSetup, len, data);
+		} else {
+			if (if_descr->bInterfaceClass == USB_BCC_VIDEO) {
+				return iface->class_handler(pSetup, len, data);
+			}
 		}
 	}
 
@@ -1518,6 +1522,8 @@ static int custom_handler(struct usb_setup_packet *pSetup,
 			 * handling and therefore we can ignore return value.
 			 */
 			if (if_descr->bInterfaceClass == USB_BCC_AUDIO) {
+				(void)iface->custom_handler(pSetup, len, data);
+			} else if (if_descr->bInterfaceClass == USB_BCC_VIDEO) {
 				(void)iface->custom_handler(pSetup, len, data);
 			}
 		}
