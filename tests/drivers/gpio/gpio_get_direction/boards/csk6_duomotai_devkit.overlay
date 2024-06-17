@@ -1,0 +1,8 @@
+// /{
+//     leds {
+//         compatible = "gpio-leds";
+//         led0:led0 {
+//             gpios = <&exgpiod 4 GPIO_ACTIVE_LOW>;
+//         };
+//     };
+// }
