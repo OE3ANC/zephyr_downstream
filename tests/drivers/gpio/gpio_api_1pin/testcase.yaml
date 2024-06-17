@@ -10,4 +10,5 @@ tests:
       - mps2_an385
       - mps2_an521
       - neorv32
+      - csk6_duomotai_devkit
     filter: dt_enabled_alias_with_parent_compat("led0", "gpio-leds")
