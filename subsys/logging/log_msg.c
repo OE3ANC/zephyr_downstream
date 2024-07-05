@@ -119,6 +119,12 @@ void z_impl_z_log_msg_runtime_vcreate(uint8_t domain_id, const void *source,
 	} else {
 		plen = 0;
 	}
+ 			
+	if (plen > (1<<Z_LOG_MSG_PACKAGE_BITS)) {
+		LOG_WRN("Message dropped because it exceeds size limitation (%u)",
+			(uint32_t)(1<<Z_LOG_MSG_PACKAGE_BITS));
+		return;
+	}
 
 	size_t msg_wlen = Z_LOG_MSG_ALIGNED_WLEN(plen, dlen);
 	struct log_msg *msg;
