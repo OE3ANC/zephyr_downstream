@@ -27,12 +27,19 @@ struct lvgl_disp_data disp_data = {
 
 #define DISPLAY_NODE DT_CHOSEN(zephyr_display)
 
+#define LISTENAI_MIPI_DBI_SPI_ROTATE (DT_PROP_OR(DT_INST(0, listenai_mipi_dbi_spi), rotate, 0))
+
 #ifdef CONFIG_LV_Z_BUFFER_ALLOC_STATIC
 
 static lv_disp_draw_buf_t disp_buf;
 
+#if LISTENAI_MIPI_DBI_SPI_ROTATE == 90
+#define DISPLAY_WIDTH  DT_PROP(DISPLAY_NODE, height)
+#define DISPLAY_HEIGHT DT_PROP(DISPLAY_NODE, width)
+#else
 #define DISPLAY_WIDTH  DT_PROP(DISPLAY_NODE, width)
 #define DISPLAY_HEIGHT DT_PROP(DISPLAY_NODE, height)
+#endif
 
 #define BUFFER_SIZE                                                                                \
 	(CONFIG_LV_Z_BITS_PER_PIXEL *                                                              \
@@ -127,9 +134,7 @@ static int lvgl_allocate_rendering_buffers(lv_disp_drv_t *disp_driver)
 
 	return err;
 }
-
 #else
-
 static int lvgl_allocate_rendering_buffers(lv_disp_drv_t *disp_driver)
 {
 	void *buf0 = NULL;
@@ -221,6 +226,12 @@ static int lvgl_init(void)
 
 	disp_data.display_dev = display_dev;
 	display_get_capabilities(display_dev, &disp_data.cap);
+
+#if LISTENAI_MIPI_DBI_SPI_ROTATE == 90
+	uint16_t __tmp = disp_data.cap.x_resolution;
+	disp_data.cap.x_resolution = disp_data.cap.y_resolution;
+	disp_data.cap.y_resolution = __tmp;
+#endif
 
 	lv_disp_drv_init(&disp_drv);
 	disp_drv.user_data = (void *)&disp_data;
