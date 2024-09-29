@@ -27,6 +27,8 @@ struct lvgl_disp_data disp_data = {
 
 #define DISPLAY_NODE DT_CHOSEN(zephyr_display)
 
+#define LISTENAI_MIPI_DBI_SPI_ROTATE (DT_PROP_OR(DT_INST(0, listenai_mipi_dbi_spi), rotate, 0))
+
 #ifdef CONFIG_LV_Z_BUFFER_ALLOC_STATIC
 
 static lv_disp_draw_buf_t disp_buf;
@@ -104,6 +106,10 @@ static int lvgl_allocate_rendering_buffers(lv_disp_drv_t *disp_driver)
 	struct lvgl_disp_data *data = (struct lvgl_disp_data *)disp_driver->user_data;
 	int err = 0;
 
+#if LISTENAI_MIPI_DBI_SPI_ROTATE == 90
+	disp_driver->ver_res = data->cap.x_resolution;
+	disp_driver->hor_res = data->cap.y_resolution;
+#else
 	if (data->cap.x_resolution <= DISPLAY_WIDTH) {
 		disp_driver->hor_res = data->cap.x_resolution;
 	} else {
@@ -117,6 +123,7 @@ static int lvgl_allocate_rendering_buffers(lv_disp_drv_t *disp_driver)
 		LOG_ERR("Vertical resolution is larger than maximum");
 		err = -ENOTSUP;
 	}
+#endif
 
 	disp_driver->draw_buf = &disp_buf;
 #ifdef CONFIG_LV_Z_DOUBLE_VDB
@@ -127,9 +134,7 @@ static int lvgl_allocate_rendering_buffers(lv_disp_drv_t *disp_driver)
 
 	return err;
 }
-
 #else
-
 static int lvgl_allocate_rendering_buffers(lv_disp_drv_t *disp_driver)
 {
 	void *buf0 = NULL;
@@ -138,8 +143,13 @@ static int lvgl_allocate_rendering_buffers(lv_disp_drv_t *disp_driver)
 	uint32_t buf_size;
 	struct lvgl_disp_data *data = (struct lvgl_disp_data *)disp_driver->user_data;
 
+#if LISTENAI_MIPI_DBI_SPI_ROTATE == 90
+	disp_driver->ver_res = data->cap.x_resolution;
+	disp_driver->hor_res = data->cap.y_resolution;
+#else
 	disp_driver->hor_res = data->cap.x_resolution;
 	disp_driver->ver_res = data->cap.y_resolution;
+#endif
 
 	buf_nbr_pixels = (CONFIG_LV_Z_VDB_SIZE * disp_driver->hor_res * disp_driver->ver_res) / 100;
 	/* one horizontal line is the minimum buffer requirement for lvgl */

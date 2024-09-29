@@ -10,6 +10,42 @@
 
 #include "lvgl_display.h"
 
+#define LISTENAI_MIPI_DBI_SPI_ROTATE (DT_PROP_OR(DT_INST(0, listenai_mipi_dbi_spi), rotate, 0))
+
+static int lvgl_display_write(const struct device *dev, const uint16_t x, const uint16_t y,
+			      const struct display_buffer_descriptor *desc, const void *buf)
+{
+	BUILD_ASSERT(LISTENAI_MIPI_DBI_SPI_ROTATE == 90 || LISTENAI_MIPI_DBI_SPI_ROTATE == 0);
+
+#if LISTENAI_MIPI_DBI_SPI_ROTATE == 90
+
+#define DISPLAY_NODE DT_CHOSEN(zephyr_display)
+
+#define DISPLAY_WIDTH  DT_PROP(DISPLAY_NODE, width)
+#define DISPLAY_HEIGHT DT_PROP(DISPLAY_NODE, height)
+
+	uint32_t new_h = desc->height;
+	uint32_t new_w = desc->width;
+	uint32_t new_x = x;
+	uint32_t new_y = y;
+
+	new_h = desc->width;
+	new_w = desc->height;
+	new_y = x;
+	new_x = DISPLAY_WIDTH - (y + desc->height);
+
+	struct display_buffer_descriptor new_desc = {
+		.buf_size = desc->buf_size,
+		.width = new_w,
+		.height = new_h,
+		.pitch = new_w,
+	};
+	return display_write(dev, new_x, new_y, &new_desc, buf);
+#else
+	return display_write(dev, x, y, desc, buf);
+#endif
+}
+
 #ifdef CONFIG_LV_Z_FLUSH_THREAD
 
 K_SEM_DEFINE(flush_complete, 0, 1);
@@ -25,7 +61,7 @@ void lvgl_flush_thread_entry(void *arg1, void *arg2, void *arg3)
 		k_msgq_get(&flush_queue, &flush, K_FOREVER);
 		data = (struct lvgl_disp_data *)flush.disp_drv->user_data;
 
-		display_write(data->display_dev, flush.x, flush.y, &flush.desc,
+		lvgl_display_write(data->display_dev, flush.x, flush.y, &flush.desc,
 			      flush.buf);
 
 		lv_disp_flush_ready(flush.disp_drv);
@@ -132,7 +168,7 @@ void lvgl_flush_display(struct lvgl_display_flush *request)
 	struct lvgl_disp_data *data =
 		(struct lvgl_disp_data *)request->disp_drv->user_data;
 
-	display_write(data->display_dev, request->x, request->y,
+	lvgl_display_write(data->display_dev, request->x, request->y,
 		      &request->desc, request->buf);
 	lv_disp_flush_ready(request->disp_drv);
 #endif
