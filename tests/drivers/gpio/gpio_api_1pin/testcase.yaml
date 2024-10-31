@@ -11,4 +11,5 @@ tests:
       - mps2/an521/cpu0
       - neorv32
       - hifive1  # see #69350
+      - csk6_duomotai_devkit
     filter: dt_enabled_alias_with_parent_compat("led0", "gpio-leds")
