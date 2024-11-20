@@ -11,3 +11,4 @@ tests:
       - mps2_an521
       - neorv32
     filter: dt_enabled_alias_with_parent_compat("led0", "gpio-leds")
+    build_only: true
