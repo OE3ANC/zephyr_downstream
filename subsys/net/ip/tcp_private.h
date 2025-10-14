@@ -210,12 +210,16 @@ union tcp_endpoint {
 #define NET_TCP_NOP_OPT          1
 #define NET_TCP_MSS_OPT          2
 #define NET_TCP_WINDOW_SCALE_OPT 3
+/* RFC 2018 SACK Permitted */
+#define NET_TCP_SACK_PERM_OPT    4
 
 /* TCP Option sizes */
 #define NET_TCP_END_SIZE          1
 #define NET_TCP_NOP_SIZE          1
 #define NET_TCP_MSS_SIZE          4
 #define NET_TCP_WINDOW_SCALE_SIZE 3
+/* RFC 2018 SACK Permitted */
+#define NET_TCP_SACK_PERM_SIZE    2
 
 struct tcp_options {
 	uint16_t mss;

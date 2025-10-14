@@ -372,6 +372,16 @@ module-dep = NET_LOG
 module-str = Log level for TCP
 module-help = Enables TCP handler output debug messages
 source "subsys/net/Kconfig.template.log_config.net"
+
+# TCP options advertisement controls
+config NET_TCP_OPTION_SACK_PERM
+    bool "Advertise TCP SACK Permitted in SYN"
+    depends on NET_TCP
+    help
+      If enabled, Zephyr will include the SACK Permitted option in SYN/SYN-ACK.
+      This only announces capability; SACK block processing may require extra
+      implementation and is not implied by this option.
+
 endif # NET_TCP
 
 config NET_TCP_TIME_WAIT_DELAY

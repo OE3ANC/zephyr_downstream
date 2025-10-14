@@ -944,6 +944,12 @@ static int tcp_header_add(struct tcp *conn, struct net_pkt *pkt, uint8_t flags,
 
 	if (conn->send_options.mss_found) {
 		th->th_off++;
+		#if IS_ENABLED(CONFIG_NET_TCP_OPTION_SACK_PERM)
+		if (flags & SYN) {
+			/* Extra 4 bytes for NOP,NOP,SACK_PERM(2) */
+			th->th_off += 1;
+		}
+		#endif
 	}
 
 	UNALIGNED_PUT(flags, &th->th_flags);
@@ -1056,6 +1062,12 @@ static int tcp_out_ext(struct tcp *conn, uint8_t flags, struct net_pkt *data,
 
 	if (conn->send_options.mss_found) {
 		alloc_len += sizeof(uint32_t);
+		#if IS_ENABLED(CONFIG_NET_TCP_OPTION_SACK_PERM)
+		if (flags & SYN) {
+			/* Extra 4 bytes for NOP,NOP,SACK_PERM(2) */
+			alloc_len += 4;
+		}
+		#endif
 	}
 
 	pkt = tcp_pkt_alloc(conn, alloc_len);
@@ -1088,6 +1100,23 @@ static int tcp_out_ext(struct tcp *conn, uint8_t flags, struct net_pkt *data,
 			tcp_pkt_unref(pkt);
 			goto out;
 		}
+
+		#if IS_ENABLED(CONFIG_NET_TCP_OPTION_SACK_PERM)
+		if (flags & SYN) {
+			/* Append NOP, NOP, SACK Permitted(2) */
+			uint8_t opts[4];
+			opts[0] = NET_TCP_NOP_OPT;
+			opts[1] = NET_TCP_NOP_OPT;
+			opts[2] = NET_TCP_SACK_PERM_OPT;
+			opts[3] = NET_TCP_SACK_PERM_SIZE;
+
+			ret = net_pkt_write(pkt, opts, sizeof(opts));
+			if (ret < 0) {
+				tcp_pkt_unref(pkt);
+				goto out;
+			}
+		}
+		#endif
 	}
 
 	ret = tcp_finalize_pkt(pkt);
