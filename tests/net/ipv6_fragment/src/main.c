@@ -2275,8 +2275,6 @@ static enum net_verdict handle_ipv6_echo_reply(struct net_pkt *pkt,
 		i++;
 	}
 
-	net_pkt_unref(pkt);
-
 	k_sem_give(&wait_data);
 
 	return NET_OK;

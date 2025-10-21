@@ -122,8 +122,7 @@ static enum net_verdict handle_reply_msg(struct net_pkt *pkt,
 		return NET_DROP;
 	}
 
-	net_pkt_unref(pkt);
-	return NET_OK;
+	return 0;
 }
 
 static struct net_icmpv4_handler echo_rep_handler = {

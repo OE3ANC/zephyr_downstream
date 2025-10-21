@@ -17,6 +17,7 @@ LOG_MODULE_DECLARE(net_ipv6, CONFIG_NET_IPV6_LOG_LEVEL);
 #include <zephyr/net/net_stats.h>
 #include <zephyr/net/net_context.h>
 #include <zephyr/net/net_mgmt.h>
+#include <zephyr/net/icmp.h>
 #include "net_private.h"
 #include "connection.h"
 #include "icmpv6.h"
@@ -123,16 +124,19 @@ static int mld_create_packet(struct net_pkt *pkt, uint16_t count)
 
 static int mld_send(struct net_pkt *pkt)
 {
+	int ret;
+
 	net_pkt_cursor_init(pkt);
 	net_ipv6_finalize(pkt, IPPROTO_ICMPV6);
 
-	if (net_send_data(pkt) < 0) {
+	ret = net_send_data(pkt);
+	if (ret < 0) {
 		net_stats_update_icmp_drop(net_pkt_iface(pkt));
 		net_stats_update_ipv6_mld_drop(net_pkt_iface(pkt));
 
 		net_pkt_unref(pkt);
 
-		return -1;
+		return ret;
 	}
 
 	net_stats_update_icmp_sent(net_pkt_iface(pkt));
@@ -141,9 +145,7 @@ static int mld_send(struct net_pkt *pkt)
 	return 0;
 }
 
-static int mld_send_generic(struct net_if *iface,
-			    const struct in6_addr *addr,
-			    uint8_t mode)
+int net_ipv6_mld_send_single(struct net_if *iface, const struct in6_addr *addr, uint8_t mode)
 {
 	struct net_pkt *pkt;
 	int ret;
@@ -202,7 +204,7 @@ int net_ipv6_mld_join(struct net_if *iface, const struct in6_addr *addr)
 		return -ENETDOWN;
 	}
 
-	ret = mld_send_generic(iface, addr, NET_IPV6_MLDv2_MODE_IS_EXCLUDE);
+	ret = net_ipv6_mld_send_single(iface, addr, NET_IPV6_MLDv2_MODE_IS_EXCLUDE);
 	if (ret < 0) {
 		return ret;
 	}
@@ -236,7 +238,7 @@ int net_ipv6_mld_leave(struct net_if *iface, const struct in6_addr *addr)
 		return 0;
 	}
 
-	ret = mld_send_generic(iface, addr, NET_IPV6_MLDv2_MODE_IS_INCLUDE);
+	ret = net_ipv6_mld_send_single(iface, addr, NET_IPV6_MLDv2_MODE_IS_INCLUDE);
 	if (ret < 0) {
 		return ret;
 	}
@@ -250,11 +252,12 @@ int net_ipv6_mld_leave(struct net_if *iface, const struct in6_addr *addr)
 	return ret;
 }
 
-static void send_mld_report(struct net_if *iface)
+static int send_mld_report(struct net_if *iface)
 {
 	struct net_if_ipv6 *ipv6 = iface->config.ip.ipv6;
 	struct net_pkt *pkt;
 	int i, count = 0;
+	int ret;
 
 	NET_ASSERT(ipv6);
 
@@ -272,10 +275,11 @@ static void send_mld_report(struct net_if *iface)
 					AF_INET6, IPPROTO_ICMPV6,
 					PKT_WAIT_TIME);
 	if (!pkt) {
-		return;
+		return -ENOBUFS;
 	}
 
-	if (mld_create_packet(pkt, count)) {
+	ret = mld_create_packet(pkt, count);
+	if (ret < 0) {
 		goto drop;
 	}
 
@@ -284,18 +288,24 @@ static void send_mld_report(struct net_if *iface)
 			continue;
 		}
 
-		if (!mld_create(pkt, &ipv6->mcast[i].address.in6_addr,
-				NET_IPV6_MLDv2_MODE_IS_EXCLUDE, 0)) {
+		ret = mld_create(pkt, &ipv6->mcast[i].address.in6_addr,
+				 NET_IPV6_MLDv2_MODE_IS_EXCLUDE, 0);
+		if (ret < 0) {
 			goto drop;
 		}
 	}
 
-	if (!mld_send(pkt)) {
-		return;
+	ret = mld_send(pkt);
+	if (ret < 0) {
+		goto drop;
 	}
+
+	return 0;
 
 drop:
 	net_pkt_unref(pkt);
+
+	return ret;
 }
 
 #define dbg_addr(action, pkt_str, src, dst)				\
@@ -308,15 +318,25 @@ drop:
 #define dbg_addr_recv(pkt_str, src, dst)	\
 	dbg_addr("Received", pkt_str, src, dst)
 
-static enum net_verdict handle_mld_query(struct net_pkt *pkt,
-					 struct net_ipv6_hdr *ip_hdr,
-					 struct net_icmp_hdr *icmp_hdr)
+static int handle_mld_query(struct net_icmp_ctx *ctx,
+			    struct net_pkt *pkt,
+			    struct net_icmp_ip_hdr *hdr,
+			    struct net_icmp_hdr *icmp_hdr,
+			    void *user_data)
 {
 	NET_PKT_DATA_ACCESS_CONTIGUOUS_DEFINE(mld_access,
 					      struct net_icmpv6_mld_query);
+	struct net_ipv6_hdr *ip_hdr = hdr->ipv6;
 	uint16_t length = net_pkt_get_len(pkt);
 	struct net_icmpv6_mld_query *mld_query;
 	uint16_t pkt_len;
+	int ret = -EIO;
+
+	if (net_pkt_remaining_data(pkt) < sizeof(struct net_icmpv6_mld_query)) {
+		/* MLDv1 query, drop. */
+		ret = 0;
+		goto drop;
+	}
 
 	mld_query = (struct net_icmpv6_mld_query *)
 				net_pkt_get_data(pkt, &mld_access);
@@ -350,25 +370,22 @@ static enum net_verdict handle_mld_query(struct net_pkt *pkt,
 		goto drop;
 	}
 
-	send_mld_report(net_pkt_iface(pkt));
-
-	net_pkt_unref(pkt);
-
-	return NET_OK;
+	return send_mld_report(net_pkt_iface(pkt));
 
 drop:
 	net_stats_update_ipv6_mld_drop(net_pkt_iface(pkt));
 
-	return NET_DROP;
+	return ret;
 }
-
-static struct net_icmpv6_handler mld_query_input_handler = {
-	.type = NET_ICMPV6_MLD_QUERY,
-	.code = 0,
-	.handler = handle_mld_query,
-};
 
 void net_ipv6_mld_init(void)
 {
-	net_icmpv6_register_handler(&mld_query_input_handler);
+	static struct net_icmp_ctx ctx;
+	int ret;
+
+	ret = net_icmp_init_ctx(&ctx, NET_ICMPV6_MLD_QUERY, 0, handle_mld_query);
+	if (ret < 0) {
+		NET_ERR("Cannot register %s handler (%d)", STRINGIFY(NET_ICMPV6_MLD_QUERY),
+			ret);
+	}
 }
