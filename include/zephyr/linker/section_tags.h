@@ -23,6 +23,7 @@
 #define __imrdata __in_section_unique(imrdata)
 
 #if defined(CONFIG_ARM)
+#define __csk_psram_net_section __in_section_unique(__CSK_PSRAM_NET_SECTION_NAME)
 #define __kinetis_flash_config_section __in_section_unique(_KINETIS_FLASH_CONFIG_SECTION_NAME)
 #define __ti_ccfg_section Z_GENERIC_SECTION(_TI_CCFG_SECTION_NAME)
 #define __ccm_data_section Z_GENERIC_SECTION(_CCM_DATA_SECTION_NAME)
